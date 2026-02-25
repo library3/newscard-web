@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>問題意識練習｜時事卡工作坊</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    /* ── Reset ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    /* ── Design tokens ── */
+    :root {
+      --font: 'Noto Sans TC', system-ui, sans-serif;
+      --bg: #f4f6f9;
+      --surface: #ffffff;
+      --border: #e2e8f0;
+      --text: #1a202c;
+      --text-muted: #718096;
+      --radius: 14px;
+      --shadow-sm: 0 2px 8px rgba(0,0,0,.07);
+      --shadow-md: 0 6px 24px rgba(0,0,0,.11);
+      --shadow-hover: 0 12px 32px rgba(0,0,0,.16);
+      --transition: .22s ease;
+
+      /* card accent colours */
+      --c1: #c53030; --c1-light: #fff5f5;
+      --c2: #276749; --c2-light: #f0fff4;
+      --c3: #2b6cb0; --c3-light: #ebf8ff;
+      --c4: #6b46c1; --c4-light: #faf5ff;
+    }
+
+    /* ── Base ── */
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.75;
+    }
+
+    a { color: inherit; }
+
+    /* ── Layout ── */
+    .wrap {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 2rem 1.25rem;
+    }
+
+    /* ── Site header ── */
+    .site-header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 2.25rem 1.25rem 1.75rem;
+      text-align: center;
+    }
+    .site-header .label {
+      display: inline-block;
+      font-size: .72rem;
+      font-weight: 700;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: .6rem;
+    }
+    .site-header h1 {
+      font-size: 1.7rem;
+      font-weight: 700;
+      letter-spacing: -.01em;
+      margin-bottom: .4rem;
+    }
+    .site-header p {
+      color: var(--text-muted);
+      font-size: .95rem;
+    }
+
+    /* ── Views ── */
+    .view { display: none; }
+    .view.active { display: block; animation: fadeUp .28s ease both; }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(14px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ══════════════════════════════════════
+       SELECTION VIEW
+    ══════════════════════════════════════ */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1.25rem;
+      margin-top: 2rem;
+    }
+    @media (max-width: 580px) { .grid { grid-template-columns: 1fr; } }
+
+    .pick-card {
+      background: var(--surface);
+      border: none;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-sm);
+      cursor: pointer;
+      text-align: left;
+      width: 100%;
+      overflow: hidden;
+      transition: transform var(--transition), box-shadow var(--transition);
+      font-family: var(--font);
+      position: relative;
+    }
+    .pick-card:hover, .pick-card:focus-visible {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-hover);
+      outline: none;
+    }
+    .pick-card:focus-visible { outline: 3px solid var(--accent, #667eea); outline-offset: 2px; }
+
+    .pick-card__bar { height: 5px; width: 100%; }
+    .pick-card__body { padding: 1.35rem 1.35rem 1.5rem; }
+    .pick-card__num {
+      font-size: .7rem;
+      font-weight: 700;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      margin-bottom: .4rem;
+    }
+    .pick-card__title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      line-height: 1.45;
+      margin-bottom: .6rem;
+    }
+    .pick-card__tag {
+      display: inline-block;
+      padding: .18rem .65rem;
+      border-radius: 999px;
+      font-size: .72rem;
+      font-weight: 700;
+      margin-bottom: .7rem;
+    }
+    .pick-card__teaser {
+      font-size: .845rem;
+      color: var(--text-muted);
+      line-height: 1.65;
+    }
+    .pick-card__arrow {
+      position: absolute;
+      right: 1.15rem;
+      bottom: 1.15rem;
+      font-size: 1.1rem;
+      font-weight: 700;
+      opacity: .3;
+      transition: opacity var(--transition), transform var(--transition);
+    }
+    .pick-card:hover .pick-card__arrow { opacity: .7; transform: translateX(3px); }
+
+    /* ══════════════════════════════════════
+       DETAIL VIEW
+    ══════════════════════════════════════ */
+    .back-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-family: var(--font);
+      font-size: .85rem;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: .35rem;
+      padding: .4rem 0;
+      margin-bottom: 1.5rem;
+      transition: color var(--transition);
+    }
+    .back-btn:hover { color: var(--text); }
+    .back-btn__icon {
+      display: inline-block;
+      transition: transform var(--transition);
+    }
+    .back-btn:hover .back-btn__icon { transform: translateX(-3px); }
+
+    /* ── News card ── */
+    .news-card {
+      background: var(--surface);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-sm);
+      overflow: hidden;
+      margin-bottom: 1.25rem;
+    }
+    .news-card__header {
+      padding: 1.5rem 1.5rem 1.25rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .news-card__badge {
+      display: inline-block;
+      padding: .22rem .75rem;
+      border-radius: 999px;
+      font-size: .72rem;
+      font-weight: 700;
+      letter-spacing: .05em;
+      margin-bottom: .7rem;
+    }
+    .news-card__headline {
+      font-size: 1.15rem;
+      font-weight: 700;
+      line-height: 1.5;
+      margin-bottom: .45rem;
+    }
+    .news-card__date {
+      font-size: .78rem;
+      color: var(--text-muted);
+    }
+    .news-card__body { padding: 1.5rem; }
+    .news-card__body p {
+      font-size: .93rem;
+      color: #2d3748;
+      line-height: 1.9;
+      margin-bottom: 1rem;
+    }
+    .news-card__body p:last-of-type { margin-bottom: 1.25rem; }
+
+    .sources-label {
+      font-size: .7rem;
+      font-weight: 700;
+      letter-spacing: .09em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: .5rem;
+    }
+    .sources-list {
+      list-style: none;
+      display: flex;
+      flex-wrap: wrap;
+      gap: .45rem;
+    }
+    .sources-list a {
+      display: inline-block;
+      padding: .22rem .75rem;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      font-size: .78rem;
+      text-decoration: none;
+      color: var(--text-muted);
+      transition: background var(--transition), border-color var(--transition), color var(--transition);
+    }
+    .sources-list a:hover {
+      background: #edf2f7;
+      border-color: #cbd5e0;
+      color: var(--text);
+    }
+    .sources-list a::after { content: ' ↗'; font-size: .65rem; opacity: .6; }
+
+    /* ── Task card ── */
+    .task-card {
+      background: var(--surface);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-sm);
+      overflow: hidden;
+      margin-bottom: 1.25rem;
+    }
+    .task-card__header {
+      padding: 1.25rem 1.5rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: flex-start;
+      gap: 1rem;
+    }
+    .task-card__icon {
+      width: 38px;
+      height: 38px;
+      border-radius: 9px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: .85rem;
+      font-weight: 700;
+      color: white;
+      flex-shrink: 0;
+      margin-top: .1rem;
+    }
+    .task-card__hd h2 { font-size: 1rem; font-weight: 700; margin-bottom: .2rem; }
+    .task-card__hd p { font-size: .82rem; color: var(--text-muted); line-height: 1.5; }
+
+    .task-card__steps { padding: 1.25rem 1.5rem; display: flex; flex-direction: column; gap: 1rem; }
+
+    .step {
+      display: flex;
+      gap: .9rem;
+      align-items: flex-start;
+    }
+    .step__num {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: .75rem;
+      font-weight: 700;
+      color: white;
+      flex-shrink: 0;
+      margin-top: .18rem;
+    }
+    .step__title {
+      font-size: .95rem;
+      font-weight: 700;
+      margin-bottom: .15rem;
+    }
+    .step__desc {
+      font-size: .82rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    .classroom-note {
+      margin: 1rem 1.5rem 1.25rem;
+      padding: .85rem 1rem;
+      background: #f0fff4;
+      border: 1px solid #9ae6b4;
+      border-radius: 8px;
+      font-size: .82rem;
+      color: #276749;
+      line-height: 1.6;
+    }
+
+    /* ── Hint section ── */
+    .hint-wrap { margin-bottom: 2.5rem; }
+
+    .hint-toggle {
+      width: 100%;
+      padding: .95rem 1.5rem;
+      background: var(--surface);
+      border: 2px dashed #cbd5e0;
+      border-radius: var(--radius);
+      cursor: pointer;
+      font-family: var(--font);
+      font-size: .9rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-align: center;
+      transition: all var(--transition);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: .6rem;
+    }
+    .hint-toggle:hover {
+      border-color: #a0aec0;
+      color: var(--text);
+    }
+    .hint-toggle.open {
+      border-style: solid;
+      border-color: #d69e2e;
+      background: #fffbeb;
+      color: #744210;
+      border-bottom-left-radius: 0;
+      border-bottom-right-radius: 0;
+    }
+    .hint-toggle__chevron {
+      display: inline-block;
+      transition: transform var(--transition);
+      font-style: normal;
+      font-size: .8rem;
+    }
+    .hint-toggle.open .hint-toggle__chevron { transform: rotate(180deg); }
+
+    .hint-body {
+      display: none;
+      background: #fffbeb;
+      border: 2px solid #d69e2e;
+      border-top: none;
+      border-bottom-left-radius: var(--radius);
+      border-bottom-right-radius: var(--radius);
+      padding: 1.5rem;
+    }
+    .hint-body.open { display: block; animation: fadeUp .2s ease both; }
+
+    .hint-body__section-label {
+      font-size: .68rem;
+      font-weight: 700;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: #92400e;
+      margin-bottom: .65rem;
+    }
+    .hint-contradiction {
+      font-size: .92rem;
+      font-weight: 700;
+      color: #78350f;
+      margin-bottom: 1.1rem;
+    }
+
+    .perspectives {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: .75rem;
+      margin-bottom: 1.25rem;
+    }
+    @media (max-width: 520px) { .perspectives { grid-template-columns: 1fr; } }
+
+    .perspective {
+      background: white;
+      border-radius: 9px;
+      padding: .9rem 1rem;
+    }
+    .perspective__label {
+      font-size: .72rem;
+      font-weight: 700;
+      margin-bottom: .35rem;
+    }
+    .perspective__text {
+      font-size: .82rem;
+      color: #6b7280;
+      line-height: 1.65;
+    }
+
+    .hint-prompt {
+      background: white;
+      border-left: 3px solid #d69e2e;
+      border-radius: 0 8px 8px 0;
+      padding: .9rem 1rem;
+      font-size: .875rem;
+      font-style: italic;
+      color: #374151;
+      line-height: 1.75;
+    }
+    .hint-prompt::before {
+      content: '思考一下：';
+      display: block;
+      font-style: normal;
+      font-size: .7rem;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: #92400e;
+      margin-bottom: .35rem;
+    }
+
+    /* ── Footer ── */
+    footer {
+      text-align: center;
+      padding: 1.5rem;
+      font-size: .75rem;
+      color: var(--text-muted);
+      border-top: 1px solid var(--border);
+    }
+  </style>
+</head>
+<body>
+
+<header class="site-header">
+  <span class="label">114-2 專題寫作指導</span>
+  <h1>問題意識練習</h1>
+  <p>選一張時事卡，開始你的探究之旅</p>
+</header>
+
+<main>
+  <!-- ── 選卡畫面 ── -->
+  <div id="view-select" class="view active">
+    <div class="wrap">
+      <div class="grid" id="card-grid"></div>
+    </div>
+  </div>
+
+  <!-- ── 卡片詳細畫面 ── -->
+  <div id="view-detail" class="view">
+    <div class="wrap">
+      <button class="back-btn" id="back-btn">
+        <span class="back-btn__icon">←</span> 返回選卡
+      </button>
+
+      <!-- 新聞 -->
+      <article class="news-card">
+        <div class="news-card__header" id="news-header"></div>
+        <div class="news-card__body"  id="news-body"></div>
+      </article>
+
+      <!-- 任務 -->
+      <div class="task-card" id="task-card"></div>
+
+      <!-- 提示 -->
+      <div class="hint-wrap">
+        <button class="hint-toggle" id="hint-toggle">
+          <span>？</span>
+          <span id="hint-label">給我一點提示</span>
+          <i class="hint-toggle__chevron">▼</i>
+        </button>
+        <div class="hint-body" id="hint-body"></div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer>
+  和美高中・114-2 專題寫作指導・問題意識工作坊
+</footer>
+
+<script>
+  /* ── 資料 ── */
+  const CARDS = [
+    {
+      id: 1,
+      title: "高齡駕駛的兩難困境",
+      category: "移動正義",
+      color: "var(--c1)",
+      colorLight: "var(--c1-light)",
+      colorHex: "#c53030",
+      colorLightHex: "#fff5f5",
+      teaser: "一場奪走三條學生生命的車禍，讓我們看見高齡駕駛政策的兩難……",
+      news: {
+        headline: "78歲老翁以時速百公里衝入放學人潮，3名國中女生在斑馬線上罹難",
+        date: "2025年5月・新北市三峽區",
+        paragraphs: [
+          "2025年5月，新北市三峽區，78歲余姓老翁駕車行至國中放學時段，以超過 100 公里時速衝入正在過馬路的人群，造成 3 名女學生（12至13歲）死亡、12人受傷。一名等紅燈的機車騎士也在事故中罹難。肇事老翁歷經12天搶救後亦不治身亡。",
+          "檢察官調查認定，余翁長期居住於事故路段附近，熟悉當地下課時段人流密集的狀況，仍以高速行駛，具不確定殺人故意。整起事故再次引發社會對高齡駕駛管理制度的廣泛討論。"
+        ],
+        sources: [
+          { text: "聯合新聞網",  url: "https://udn.com/news/story/7315/8785008" },
+          { text: "公視新聞網",  url: "https://news.pts.org.tw/article/752038"  }
+        ]
+      },
+      hint: {
+        contradiction: "道路安全 vs. 高齡者的移動正義",
+        perspectives: [
+          { label: "安全考量（主流社會聲音）", text: "高齡者反應能力逐漸退化，在法律與道德上不應繼續行駛於公路，社會必須保護其他用路人。" },
+          { label: "移動正義（當事人處境）",   text: "偏郊區普遍缺乏大眾運輸，剝奪駕照等於剝奪就醫、購物、自立生活的能力，讓老人被迫困在家中。" }
+        ],
+        prompt: "如果剝奪高齡者駕照保障了道路安全，但同時讓他們動彈不得——這個代價，社會有認真計算過嗎？問題的根本是「老人不該開車」，還是「我們沒有給老人其他選擇」？"
+      }
+    },
+    {
+      id: 2,
+      title: "誰的路？",
+      category: "路權分配",
+      color: "var(--c2)",
+      colorLight: "var(--c2-light)",
+      colorHex: "#276749",
+      colorLightHex: "#f0fff4",
+      teaser: "一條800公尺的標線人行道，讓店家和行人各自喊冤……",
+      news: {
+        headline: "高雄劃設標線人行道，沿線店家強烈抗議：貨車卸貨沒地方了",
+        date: "2024年・全台多處",
+        paragraphs: [
+          "2024年，高雄市交通局在瑞隆路劃設800公尺的標線型人行道，目的是改善行人與車輛爭道的危險狀況。然而，沿路店家隨即強烈抗議，認為標線佔用了貨車卸貨的空間，也讓顧客找不到停車位，直接影響生意。",
+          "類似的爭議在全台各地不斷上演。台灣因人行道不普及，長期被稱為「行人地獄」；但每當地方政府試圖改善，往往又遭到商家、機車騎士和居民的聯合反彈。一條路的空間就這麼多，到底該讓給誰？"
+        ],
+        sources: [
+          { text: "眼底城事", url: "https://eyesonplace.net/2024/06/19/25297/" },
+          { text: "報導者",   url: "https://www.twreporter.org/a/sidewalk-pedestrian-traffic-safety" }
+        ]
+      },
+      hint: {
+        contradiction: "行人安全 vs. 商家生計與停車需求",
+        perspectives: [
+          { label: "人本交通（行人、倡議者）", text: "台灣的行人長年在車陣中冒險求生，劃設人行道是最基本的安全保障，不應再向車輛讓步。" },
+          { label: "現實生計（店家、機車騎士）", text: "標線拿走了卸貨區和停車位，直接影響商家日常營運，也壓縮機車在路上的行駛空間。" }
+        ],
+        prompt: "這條路的問題，是「誰有優先使用權」，還是「道路空間在設計之初就不夠用」？如果路不夠寬，只是畫線，真的能解決問題嗎？"
+      }
+    },
+    {
+      id: 3,
+      title: "捷運夢與空蕩蕩的公車",
+      category: "大眾運輸",
+      color: "var(--c3)",
+      colorLight: "var(--c3-light)",
+      colorHex: "#2b6cb0",
+      colorLightHex: "#ebf8ff",
+      teaser: "彰化喊了七年的捷運終於要規劃了，但現有的公車幾乎沒人搭……",
+      news: {
+        headline: "彰化捷運「喊了七年只聞簡報聲」，2025年才舉辦首次公聽會",
+        date: "2025年5月・彰化縣",
+        paragraphs: [
+          "台中捷運綠線計劃延伸至彰化市，全長約9.94公里、預計設置8座高架車站。行政院於2024年1月核定可行性研究，2025年5月才舉辦首場公聽會。縣民期盼已久，但媒體報導形容這七年來「只聞簡報聲，不見動工日」。",
+          "然而，彰化目前的大眾運輸使用率極低。縣內許多公車路線每天搭乘人次屈指可數，部分路線幾乎空車行駛。有人口百萬的縣市，卻有著全台後段班的公共運輸使用率。民眾熱切期待捷運，但連現有的公車都不搭——這兩件事同時存在，讓人不禁好奇：有了捷運，真的會有人搭嗎？"
+        ],
+        sources: [
+          { text: "自由時報", url: "https://news.ltn.com.tw/news/Changhua/breakingnews/5034477" },
+          { text: "遠見城市學", url: "https://city.gvm.com.tw/article/104363" }
+        ]
+      },
+      hint: {
+        contradiction: "民眾對硬體建設的期待 vs. 現實的使用習慣落差",
+        perspectives: [
+          { label: "建設樂觀論（支持者）",       text: "捷運能帶動沿線發展、吸引人口回流，是城市升級的象徵。有了好的設施，自然就有人使用。" },
+          { label: "習慣現實論（研究者、業者）", text: "彰化連現有的公車都幾乎沒人搭，問題不在有沒有交通工具，而在「開車習慣」已根深蒂固。" }
+        ],
+        prompt: "如果人們連現有的公共運輸都不願意搭，蓋了捷運就會不同嗎？問題的根本在「硬體不夠好」，還是「習慣與文化沒有改變」？"
+      }
+    },
+    {
+      id: 4,
+      title: "最危險的保護",
+      category: "通學安全",
+      color: "var(--c4)",
+      colorLight: "var(--c4-light)",
+      colorHex: "#6b46c1",
+      colorLightHex: "#faf5ff",
+      teaser: "每個家長為了保護孩子而開車接送，但全部人加在一起，卻讓校門口成了最危險的地方……",
+      news: {
+        headline: "逾九成國小生由家長開車接送，台南市高達99.9%，校門口成交通黑點",
+        date: "調查報導・台灣",
+        paragraphs: [
+          "根據調查，台灣超過90%的國小學童由家長開車接送，台南市高達99.9%、台中市99%、高雄市98.9%。每到上下學時間，各校門口幾乎必定出現車陣：違停、逆向行駛、引擎空轉、喇叭聲不斷。",
+          "研究與報導指出，台灣學童遭遇交通事故的高風險地點，正是自家學校門口。個別家長的想法是「開車接送才安全」，但當所有家長都這樣做，製造出的卻是全台最混亂、最危險的交通黑點。每個人都在「保護孩子」，但加在一起的結果，是讓孩子面臨更大的危險。"
+        ],
+        sources: [
+          { text: "聯合新聞網調查", url: "https://udn.com/news/story/7266/5797964" },
+          { text: "Yahoo新聞討論",  url: "https://tw.sports.yahoo.com/news/%E5%B0%8F%E5%AD%A9%E4%B8%8A%E5%AD%B8%E8%A6%81-%E5%AE%B6%E9%95%B7%E6%8E%A5%E9%80%81-%E4%BB%96%E5%98%86%E9%80%A0%E6%88%90%E9%A6%AC%E8%B7%AF%E4%BA%82%E8%B1%A1-%E7%B6%B2%E6%9B%9D2%E9%BB%9E%E4%B8%8D%E6%8C%BA-%E6%88%91%E4%B9%9F%E4%B8%8D%E6%95%A2%E8%B5%B0-220510619.html" }
+        ]
+      },
+      hint: {
+        contradiction: "個人理性 vs. 集體非理性（合成謬誤）",
+        perspectives: [
+          { label: "個別家長（個人理性）",    text: "台灣交通混亂，讓孩子自己走路太危險，親自開車接送才能確保孩子安全，這是負責任的父母該做的事。" },
+          { label: "所有家長加總（集體後果）", text: "當九成家長都這樣想，校門口就成了大量車輛集中的地方，反而製造出全天最危險的交通環境。" }
+        ],
+        prompt: "每個人都做了「對的事」，加在一起卻造成了「最壞的結果」——這個困境，是誰的責任？問題在個別家長的選擇，還是在整個環境與制度的設計？"
+      }
+    }
+  ];
+
+  /* ── Helpers ── */
+  const $ = id => document.getElementById(id);
+
+  /* ── State ── */
+  let hintOpen = false;
+
+  /* ── Render selection grid ── */
+  function renderGrid() {
+    $('card-grid').innerHTML = CARDS.map(c => `
+      <button
+        class="pick-card"
+        onclick="openCard(${c.id})"
+        aria-label="開啟時事卡：${c.title}"
+        style="--accent: ${c.colorHex}"
+      >
+        <div class="pick-card__bar" style="background: ${c.colorHex}"></div>
+        <div class="pick-card__body">
+          <div class="pick-card__num" style="color: ${c.colorHex}">時事卡 ${c.id}</div>
+          <div class="pick-card__title">${c.title}</div>
+          <div class="pick-card__tag" style="background: ${c.colorLightHex}; color: ${c.colorHex}">${c.category}</div>
+          <p class="pick-card__teaser">${c.teaser}</p>
+        </div>
+        <span class="pick-card__arrow">→</span>
+      </button>
+    `).join('');
+  }
+
+  /* ── Open card detail ── */
+  function openCard(id) {
+    const c = CARDS.find(x => x.id === id);
+    if (!c) return;
+
+    hintOpen = false;
+
+    /* news header */
+    $('news-header').innerHTML = `
+      <div class="news-card__badge"
+           style="background: ${c.colorLightHex}; color: ${c.colorHex}">
+        時事卡 ${c.id}｜${c.category}
+      </div>
+      <h2 class="news-card__headline">${c.news.headline}</h2>
+      <div class="news-card__date">${c.news.date}</div>
+    `;
+
+    /* news body */
+    const paras = c.news.paragraphs.map(p => `<p>${p}</p>`).join('');
+    const srcs  = c.news.sources.map(s =>
+      `<li><a href="${s.url}" target="_blank" rel="noopener noreferrer">${s.text}</a></li>`
+    ).join('');
+
+    $('news-body').innerHTML = `
+      ${paras}
+      <div class="sources-label">新聞來源</div>
+      <ul class="sources-list">${srcs}</ul>
+    `;
+
+    /* task card */
+    $('task-card').innerHTML = `
+      <div class="task-card__header">
+        <div class="task-card__icon" style="background: ${c.colorHex}">作</div>
+        <div class="task-card__hd">
+          <h2>你的探究任務</h2>
+          <p>閱讀完新聞後，請開啟 Google Classroom 的對應作業，依序回答以下四個問題</p>
+        </div>
+      </div>
+      <div class="task-card__steps">
+        <div class="step">
+          <div class="step__num" style="background: ${c.colorHex}">1</div>
+          <div>
+            <div class="step__title">我的研究問題</div>
+            <div class="step__desc">從這則時事，你想問一個什麼問題？這個問題探討的是什麼之間的關係？</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step__num" style="background: ${c.colorHex}">2</div>
+          <div>
+            <div class="step__title">問題意識</div>
+            <div class="step__desc">你「原本以為」是什麼？這則時事讓你看到什麼矛盾？清楚說出矛盾點在哪裡。</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step__num" style="background: ${c.colorHex}">3</div>
+          <div>
+            <div class="step__title">理論假設</div>
+            <div class="step__desc">你猜這個矛盾存在的原因是什麼？提出一個「可能的解釋」。</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step__num" style="background: ${c.colorHex}">4</div>
+          <div>
+            <div class="step__title">驗證方式</div>
+            <div class="step__desc">你要怎麼知道自己的猜測是對的？可以用什麼方法、找什麼資料來驗證？</div>
+          </div>
+        </div>
+      </div>
+      <div class="classroom-note">
+        請至 <strong>Google Classroom</strong> 開啟本課作業填寫，完成後記得按「繳交」。
+      </div>
+    `;
+
+    /* hint */
+    const toggle = $('hint-toggle');
+    const body   = $('hint-body');
+    toggle.classList.remove('open');
+    body.classList.remove('open');
+    $('hint-label').textContent = '給我一點提示';
+
+    const persHtml = c.hint.perspectives.map(p => `
+      <div class="perspective">
+        <div class="perspective__label" style="color: ${c.colorHex}">${p.label}</div>
+        <p class="perspective__text">${p.text}</p>
+      </div>
+    `).join('');
+
+    body.innerHTML = `
+      <p class="hint-body__section-label">核心矛盾</p>
+      <p class="hint-contradiction">${c.hint.contradiction}</p>
+      <div class="perspectives">${persHtml}</div>
+      <div class="hint-prompt">${c.hint.prompt}</div>
+    `;
+
+    /* switch views */
+    $('view-select').classList.remove('active');
+    $('view-detail').classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  /* ── Back button ── */
+  $('back-btn').addEventListener('click', () => {
+    $('view-detail').classList.remove('active');
+    $('view-select').classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+
+  /* ── Hint toggle ── */
+  $('hint-toggle').addEventListener('click', () => {
+    hintOpen = !hintOpen;
+    const toggle = $('hint-toggle');
+    const body   = $('hint-body');
+    toggle.classList.toggle('open', hintOpen);
+    body.classList.toggle('open',   hintOpen);
+    $('hint-label').textContent = hintOpen ? '隱藏提示' : '給我一點提示';
+  });
+
+  /* ── Init ── */
+  renderGrid();
+</script>
+
+</body>
+</html>
